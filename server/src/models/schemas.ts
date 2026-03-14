@@ -56,15 +56,16 @@ export interface IItem extends Document {
   updated_at: Date;
 }
 
-const ItemSchema = new Schema<IItem>({
-  user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  category_id: { type: Schema.Types.ObjectId, ref: 'Category' },
+const ItemSchema = new mongoose.Schema({
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   name: { type: String, required: true },
-  description: { type: String },
-  purchase_date: { type: Date },
-  purchase_price: { type: Number },
-  location: { type: String },
-  photos: [{ type: String }],
+  description: String,
+  purchase_date: Date,
+  purchase_price: Number,
+  location: String,
+  quantity: { type: Number, default: 1 },
+  photos: [String],
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });

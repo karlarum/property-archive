@@ -128,22 +128,22 @@ function displayItems(itemsToDisplay: any[]): void {
   }
 
   container.innerHTML = itemsToDisplay.map(item => `
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100" data-item-id="${item.id}">
-        <button class="delete-btn" data-item-id="${item.id}">×</button>
-        <div class="card-body">
-          <h5 class="card-title">${escapeHtml(item.name)}</h5>
-          ${item.category_name ? `<span class="badge bg-secondary mb-2">${escapeHtml(item.category_name)}</span>` : ''}
-          ${item.description ? `<p class="card-text mt-2">${escapeHtml(item.description)}</p>` : ''}
-          <div class="text-muted small mt-3">
-            ${item.location ? `Vendor: ${escapeHtml(item.location)} | ` : ''}
-            ${item.purchase_price ? `Value: $${item.purchase_price} | ` : ''}
-            ${item.photo_count > 0 ? `${item.photo_count} photo(s)` : 'No photos'}
-          </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100" data-item-id="${item.id}">
+      <button class="delete-btn" data-item-id="${item.id}">×</button>
+      <div class="card-body">
+        <h5 class="card-title">${escapeHtml(item.name)} ${item.quantity > 1 ? `<span class="badge bg-primary">×${item.quantity}</span>` : ''}</h5>
+        ${item.category_name ? `<span class="badge bg-secondary mb-2">${escapeHtml(item.category_name)}</span>` : ''}
+        ${item.description ? `<p class="card-text mt-2">${escapeHtml(item.description)}</p>` : ''}
+        <div class="text-muted small mt-3">
+          ${item.location ? `${escapeHtml(item.location)} | ` : ''}
+          ${item.purchase_price ? `$${item.purchase_price}${item.quantity > 1 ? ` ea. ($${(item.purchase_price * item.quantity).toFixed(2)} total)` : ''} | ` : ''}
+          ${item.photo_count > 0 ? `${item.photo_count} photo(s)` : 'No photos'}
         </div>
       </div>
     </div>
-  `).join('');
+  </div>
+`).join('');
 
   // Add event listeners after rendering
   addCardEventListeners();
@@ -216,10 +216,10 @@ async function saveItem(): Promise<void> {
   const location = (document.getElementById('item-location') as HTMLInputElement).value;
   const purchaseDate = (document.getElementById('item-purchase-date') as HTMLInputElement).value;
   const purchasePrice = (document.getElementById('item-purchase-price') as HTMLInputElement).value;
+  const quantity = (document.getElementById('item-quantity') as HTMLInputElement).value;
   const photosInput = document.getElementById('item-photos') as HTMLInputElement;
 
   try {
-    // Create item
     const response = await fetch(`${API_URL}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -230,7 +230,8 @@ async function saveItem(): Promise<void> {
         categoryId: categoryId || undefined,
         location: location || undefined,
         purchaseDate: purchaseDate || undefined,
-        purchasePrice: purchasePrice || undefined
+        purchasePrice: purchasePrice || undefined,
+        quantity: quantity ? parseInt(quantity) : 1
       })
     });
 

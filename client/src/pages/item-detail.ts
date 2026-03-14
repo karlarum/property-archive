@@ -100,6 +100,7 @@ function displayItem(item: any): void {
   document.getElementById('item-purchase-price')!.textContent = item.purchase_price 
     ? `$${item.purchase_price}` 
     : 'Not specified';
+  document.getElementById('item-quantity')!.textContent = item.quantity ? item.quantity.toString() : '1';
 
   // Category badge
   const categoryBadge = document.getElementById('item-category')!;
@@ -222,7 +223,6 @@ async function loadCategories(): Promise<void> {
 function openEditModal(): void {
   if (!currentItem) return;
 
-  // Populate form with current values
   (document.getElementById('edit-item-name') as HTMLInputElement).value = currentItem.name;
   (document.getElementById('edit-item-description') as HTMLTextAreaElement).value = currentItem.description || '';
   (document.getElementById('edit-item-category') as HTMLSelectElement).value = currentItem.category_id || '';
@@ -231,6 +231,7 @@ function openEditModal(): void {
     ? new Date(currentItem.purchase_date).toISOString().split('T')[0] 
     : '';
   (document.getElementById('edit-item-purchase-price') as HTMLInputElement).value = currentItem.purchase_price || '';
+  (document.getElementById('edit-item-quantity') as HTMLInputElement).value = currentItem.quantity || '1';
 
   editItemModal.show();
 }
@@ -245,6 +246,7 @@ async function saveEdit(): Promise<void> {
   const location = (document.getElementById('edit-item-location') as HTMLInputElement).value;
   const purchaseDate = (document.getElementById('edit-item-purchase-date') as HTMLInputElement).value;
   const purchasePrice = (document.getElementById('edit-item-purchase-price') as HTMLInputElement).value;
+  const quantity = (document.getElementById('edit-item-quantity') as HTMLInputElement).value;
   const photosInput = document.getElementById('edit-item-photos') as HTMLInputElement;
 
   try {
@@ -259,7 +261,8 @@ async function saveEdit(): Promise<void> {
         categoryId: categoryId || undefined,
         location: location || undefined,
         purchaseDate: purchaseDate || undefined,
-        purchasePrice: purchasePrice || undefined
+        purchasePrice: purchasePrice || undefined,
+        quantity: quantity ? parseInt(quantity) : 1
       })
     });
 
@@ -283,7 +286,7 @@ async function saveEdit(): Promise<void> {
     }
 
     editItemModal.hide();
-    // Reload to show updated info
+    // Show updated info
     loadItemDetails(itemId);
   } catch (error) {
     console.error('Error updating item:', error);
