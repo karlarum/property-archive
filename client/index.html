@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Archive</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hurricane&family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="/">Property Archive</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">HOME</a>
+        </li>
+        <li class="nav-item nav-separator">|</li>
+        <li class="nav-item">
+          <a class="nav-link" href="/register.html">REGISTER</a>
+        </li>
+        <li class="nav-item nav-separator">|</li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login.html">LOGIN</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <!-- Main Content -->
+  <main class="simple-hero-page">
+    <div class="container">
+      <!-- Logo Hero -->
+      <div class="logo-hero">
+        <img src="/pa-index-hero.png" alt="Property Archive Logo" class="hero-logo">
+        <p class="hero-tagline">Document your belongings before disaster strikes</p>
+        <div class="hero-buttons">
+          <a href="/register.html" class="btn btn-primary btn-lg px-5">Get Started</a>
+          <a href="/login.html" class="btn btn-primary btn-lg px-5">Sign In</a>
+        </div>
+      </div>
+
+      <!-- Feature Cards -->
+      <div class="row g-4 mt-5">
+        <div class="col-md-4">
+          <div class="card h-100 simple-card">
+            <div class="card-body text-center">
+              <h5 class="card-title">Organize Items</h5>
+              <p class="card-text">
+                Create detailed records of your belongings with descriptions, categories, and purchase information.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 simple-card">
+            <div class="card-body text-center">
+              <h5 class="card-title">Upload Photos</h5>
+              <p class="card-text">
+                Securely store photos of your items with access controls to protect your privacy.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 simple-card">
+            <div class="card-body text-center">
+              <h5 class="card-title">Export Reports</h5>
+              <p class="card-text">
+                Generate PDF and CSV reports formatted for insurance claims and recovery documentation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

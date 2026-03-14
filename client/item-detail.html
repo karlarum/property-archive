@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Archive</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hurricane&family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="/">Property Archive</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard.html">DASHBOARD</a>
+        </li>
+        <li class="nav-item nav-separator">|</li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="nav-logout">LOGOUT</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <!-- Main Content -->
+  <main class="container mt-4">
+    <div id="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div id="item-detail" style="display: none;">
+      <!-- Back button -->
+      <div class="mb-3">
+        <a href="/dashboard.html" class="btn btn-outline-secondary">
+          ← Back to Dashboard
+        </a>
+      </div>
+
+      <!-- Item Info Card -->
+<div class="card mb-4" style="position: relative;">
+  <button class="delete-btn-detail" id="delete-item-btn">×</button>
+  <div class="card-body">
+    <h2 id="item-name" class="card-title"></h2>
+    <span id="item-category" class="badge bg-secondary mb-3"></span>
+    
+    <div class="row mt-3">
+      <div class="col-md-6">
+        <p><strong>Description:</strong></p>
+        <p id="item-description" class="text-muted"></p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Vendor:</strong> <span id="item-location"></span></p>
+        <p><strong>Purchase Date:</strong> <span id="item-purchase-date"></span></p>
+        <p><strong>Purchase Price:</strong> <span id="item-purchase-price"></span></p>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary" id="edit-btn">Edit Item</button>
+    </div>
+  </div>
+</div>
+
+      <!-- Photos Section -->
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Photos</h4>
+          <div id="photos-container" class="row g-3 mt-2">
+            <!-- Photos will be loaded here -->
+          </div>
+          <div id="no-photos" style="display: none;" class="text-muted">
+            No photos uploaded yet.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-message" class="alert alert-danger" style="display: none;">
+      Failed to load item details.
+    </div>
+  </main>
+
+  <!-- Edit Item Modal -->
+  <div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-item-form">
+            <div class="mb-3">
+              <label for="edit-item-name" class="form-label">Item Name *</label>
+              <input type="text" class="form-control" id="edit-item-name" required>
+            </div>
+            <div class="mb-3">
+              <label for="edit-item-description" class="form-label">Description</label>
+              <textarea class="form-control" id="edit-item-description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="edit-item-category" class="form-label">Category</label>
+              <select class="form-select" id="edit-item-category">
+                <option value="">No Category</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="edit-item-location" class="form-label">Vendor</label>
+              <input type="text" class="form-control" id="edit-item-location">
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="edit-item-purchase-date" class="form-label">Purchase Date</label>
+                <input type="date" class="form-control" id="edit-item-purchase-date">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="edit-item-purchase-price" class="form-label">Purchase Price</label>
+                <input type="number" class="form-control" id="edit-item-purchase-price" step="0.01" min="0">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="edit-item-photos" class="form-label">Add Photos (max 5)</label>
+              <input type="file" class="form-control" id="edit-item-photos" accept="image/*" multiple>
+              <div class="form-text">Upload additional photos for this item</div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="save-edit-btn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script type="module" src="/src/pages/item-detail.ts"></script>
+</body>
+</html>

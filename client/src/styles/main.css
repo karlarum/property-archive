@@ -1,0 +1,450 @@
+/* Property Archive */
+
+:root {
+  /* Your Exact Color Palette */
+  --primary: #9db49a;           /* Green buttons */
+  --primary-dark: #88a085;      /* Darker green on hover */
+  --navbar-bg: #463f3a;         /* Navigation background */
+  --page-bg: #e0e1dc;           /* Page background */
+  --slate-blue: #354b67;        /* Blue slate */
+  --text-dark: #2C2C2C;         /* Almost black */
+  --text-muted: #6B6B6B;        /* Medium gray */
+  --accent: #C9A882;            /* Warm sand/shell */
+  --danger: #E85D75;            /* Coral */
+  --card-shadow: 0 2px 12px rgba(157, 180, 154, 0.15);
+  --card-shadow-hover: 0 8px 24px rgba(157, 180, 154, 0.25);
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--page-bg);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Links */
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(157, 180, 154, 0.4);
+}
+
+.btn-success {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  border-radius: 8px;
+}
+
+.btn-danger {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  border-radius: 8px;
+}
+
+.btn-outline-danger {
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  border-radius: 8px;
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+}
+
+/* Navbar */
+.navbar {
+  background: var(--navbar-bg) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  font-family: 'Hurricane', cursive;
+  font-weight: 400;
+  font-size: 2.5rem;
+  color: white !important;
+  letter-spacing: 1px;
+}
+
+.navbar-nav .nav-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-transform: uppercase;
+}
+
+.navbar-nav .nav-link:hover {
+  color: white !important;
+}
+
+.nav-separator {
+  color: white;
+  padding: 0 3rem;
+  padding-top: .4rem;
+  font-weight: 300;
+  pointer-events: none;
+}
+
+/* Cards - General */
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-title {
+  color: var(--text-dark);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Index Page Cards */
+.simple-card {
+  background: var(--navbar-bg);
+  border: none;
+  color: white;
+}
+
+.simple-card:hover {
+  background: #2C2C2C;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.simple-card .card-title {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.simple-card .card-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Dashboard */
+.stats-card {
+  background: #f8f8f8 !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.stats-card .card-title {
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Inter', sans-serif;
+}
+
+.stats-card .display-6 {
+  color: var(--primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Dashboard - Clickable Item Cards */
+#items-container .card {
+  margin-bottom: 1rem;
+  background: white;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+#items-container .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary);
+}
+
+/* Delete X Button */
+.delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #d32f2f;
+  font-size: 1.3rem;
+  font-weight: 400;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  line-height: 1;
+  z-index: 10;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #b71c1c;
+}
+
+/* Stats Cards */
+.stats-card .card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.display-6 {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 2.5rem;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Badges */
+.badge {
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.badge.bg-secondary {
+  background-color: var(--accent) !important;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 2px solid #d9d9d9;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(157, 180, 154, 0.25);
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #f0f4f0 0%, white 100%);
+  border-bottom: 2px solid #e8ede8;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-title {
+  color: var(--text-dark);
+  font-weight: 600;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Photo Gallery */
+#photos-container .card img {
+  border-radius: 12px 12px 0 0;
+}
+
+/* Alert Messages */
+.alert-danger {
+  background-color: #ffe5e5;
+  border-color: var(--danger);
+  color: #c02020;
+  border-radius: 12px;
+}
+
+.alert-success {
+  background-color: #e8f5e9;
+  border-color: var(--primary);
+  color: #2d5a2d;
+  border-radius: 12px;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  color: var(--primary);
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Button Group */
+.btn-group .btn {
+  margin: 0 4px;
+}
+
+/* Hero Section */
+.simple-hero-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  padding: 4rem 0;
+}
+
+.logo-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.hero-logo {
+  max-width: 650px;
+  width: 100%;
+  height: auto;
+  margin-bottom: 2rem;
+}
+
+.hero-tagline {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 400;
+  margin-bottom: 2.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Page Fade Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.container {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Item Detail - Delete "X" Button */
+.delete-btn-detail {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #d32f2f;
+  font-size: 2rem;
+  font-weight: 400;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  padding: 4px 12px;
+  line-height: 1;
+  z-index: 10;
+}
+
+.delete-btn-detail:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #b71c1c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 2rem;
+  }
+
+  .hero-logo {
+    max-width: 400px;
+  }
+  
+  .hero-tagline {
+    font-size: 0.9rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .hero-buttons .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+}
