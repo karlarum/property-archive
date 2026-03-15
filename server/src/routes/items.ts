@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { requireAuth } from '../middleware/auth';
 import { Item, Category } from '../models/schemas';
 import { generateImageDescription } from '../services/aiService';
+import { uploadToR2, deleteFromR2, getSignedUrlFromR2 } from '../services/r2Service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -39,71 +41,112 @@ const upload = multer({
   }
 });
 
-// All routes require authentication
 router.use(requireAuth);
 
-/* GET /api/items - Get all items for the logged-in user */
+/* GET /api/items - Get all items for the logged-in user with signed URLs */
 router.get('/', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
     
-    const items = await Item.find({ user_id: userId })
-      .populate('category_id', 'name')
-      .sort({ created_at: -1 });
+    const items = await Item.aggregate([
+      { $match: { user_id: new mongoose.Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category_id',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          id: { $toString: '$_id' },
+          name: 1,
+          description: 1,
+          category_id: { $toString: '$category_id' },
+          category_name: '$category.name',
+          location: 1,
+          purchase_date: 1,
+          purchase_price: 1,
+          quantity: 1,
+          photos: 1,
+          photo_count: { $size: { $ifNull: ['$photos', []] } },
+          created_at: 1
+        }
+      },
+      { $sort: { created_at: -1 } }
+    ]);
 
-    const itemsFormatted = items.map(item => ({
-      id: item._id,
-      name: item.name,
-      description: item.description,
-      category_id: item.category_id,
-      category_name: item.category_id ? (item.category_id as any).name : null,
-      purchase_date: item.purchase_date,
-      purchase_price: item.purchase_price,
-      location: item.location,
-      photo_count: item.photos.length,
-      created_at: item.created_at,
-      updated_at: item.updated_at
-    }));
+    // Signed URLs for photos
+    for (const item of items) {
+      if (item.photos && item.photos.length > 0) {
+        item.photoUrls = await Promise.all(
+          item.photos.map((filename: string) => getSignedUrlFromR2(filename))
+        );
+      }
+    }
 
-    res.json(itemsFormatted);
+    res.json(items);
   } catch (error) {
     console.error('Error fetching items:', error);
     res.status(500).json({ error: 'Failed to fetch items' });
   }
 });
 
-/* GET /api/items/:id - Get a single item with photos */
+/* GET /api/items/:id - Get a single item with signed photo URLs */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
     const itemId = req.params.id;
 
-    const item = await Item.findOne({ _id: itemId, user_id: userId })
-      .populate('category_id', 'name');
+    const items = await Item.aggregate([
+      { 
+        $match: { 
+          _id: new mongoose.Types.ObjectId(itemId),
+          user_id: new mongoose.Types.ObjectId(userId)
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category_id',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          id: { $toString: '$_id' },
+          name: 1,
+          description: 1,
+          category_id: { $toString: '$category_id' },
+          category_name: '$category.name',
+          location: 1,
+          purchase_date: 1,
+          purchase_price: 1,
+          quantity: 1,
+          photos: 1,
+          created_at: 1
+        }
+      }
+    ]);
 
-    if (!item) {
+    if (!items || items.length === 0) {
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    const itemFormatted = {
-      id: item._id,
-      name: item.name,
-      description: item.description,
-      category_id: item.category_id,
-      category_name: item.category_id ? (item.category_id as any).name : null,
-      purchase_date: item.purchase_date,
-      purchase_price: item.purchase_price,
-      location: item.location,
-      photos: item.photos.map((filename, index) => ({
-        id: index,
-        filename,
-        filepath: `/uploads/${filename}`
-      })),
-      created_at: item.created_at,
-      updated_at: item.updated_at
-    };
+    const item = items[0];
 
-    res.json(itemFormatted);
+    // Generate signed URLs for photos
+    if (item.photos && item.photos.length > 0) {
+      item.photoUrls = await Promise.all(
+        item.photos.map((filename: string) => getSignedUrlFromR2(filename))
+      );
+    }
+
+    res.json(item);
   } catch (error) {
     console.error('Error fetching item:', error);
     res.status(500).json({ error: 'Failed to fetch item' });
@@ -170,7 +213,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-/* DELETE /api/items/:id - Delete an item */
+/* DELETE /api/items/:id - Delete an item and all its photos from R2 */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
@@ -181,18 +224,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    // Delete photo files
-    item.photos.forEach(filename => {
-      try {
-        const filepath = path.join(__dirname, '../../uploads', filename);
-        if (fs.existsSync(filepath)) {
-          fs.unlinkSync(filepath);
-        }
-      } catch (err) {
-        console.error('Error deleting photo file:', err);
-      }
-    });
+    // Delete all photos from R2
+    if (item.photos && item.photos.length > 0) {
+      await Promise.all(
+        item.photos.map(filename => deleteFromR2(filename))
+      );
+    }
 
+    // Delete item from database
     await Item.deleteOne({ _id: itemId });
 
     res.json({ message: 'Item deleted successfully' });
@@ -202,7 +241,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-/* POST /api/items/:id/photos - Upload photos for an item (with AI description) */
+/* POST /api/items/:id/photos - Upload photos for an item (with AI description) - saves to R2 */
 router.post('/:id/photos', upload.array('photos', 5), async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
@@ -220,11 +259,7 @@ router.post('/:id/photos', upload.array('photos', 5), async (req: Request, res: 
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    // Add photo filenames to item
-    const photoFilenames = files.map(file => file.filename);
-    item.photos.push(...photoFilenames);
-    
-    // Generate AI description from first photo if item has no description
+    // Generate AI description from first photo before uploading to R2
     if (!item.description && files.length > 0) {
       const firstPhotoPath = files[0].path;
       const aiDescription = await generateImageDescription(firstPhotoPath);
@@ -232,6 +267,13 @@ router.post('/:id/photos', upload.array('photos', 5), async (req: Request, res: 
         item.description = aiDescription;
       }
     }
+
+    // Upload photos to R2
+    const uploadPromises = files.map(file => uploadToR2(file.path, file.filename));
+    const photoFilenames = await Promise.all(uploadPromises);
+    
+    // Add photo filenames to item
+    item.photos.push(...photoFilenames);
     
     await item.save();
 
@@ -246,31 +288,23 @@ router.post('/:id/photos', upload.array('photos', 5), async (req: Request, res: 
   }
 });
 
-/* DELETE /api/items/:itemId/photos/:photoIndex - Delete a photo */
-router.delete('/:itemId/photos/:photoIndex', async (req: Request, res: Response) => {
+/* DELETE /api/items/:id/photos/:filename - Delete a specific photo from R2 */
+router.delete('/:id/photos/:filename', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
-    const { itemId, photoIndex } = req.params;
-    const index = parseInt(photoIndex);
+    const itemId = req.params.id;
+    const filename = req.params.filename;
 
     const item = await Item.findOne({ _id: itemId, user_id: userId });
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    if (index < 0 || index >= item.photos.length) {
-      return res.status(404).json({ error: 'Photo not found' });
-    }
+    // Remove from R2
+    await deleteFromR2(filename);
 
-    const filename = item.photos[index];
-    
-    const filepath = path.join(__dirname, '../../uploads', filename);
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-    }
-
-    // Remove from array
-    item.photos.splice(index, 1);
+    // Remove from database
+    item.photos = item.photos.filter(photo => photo !== filename);
     await item.save();
 
     res.json({ message: 'Photo deleted successfully' });

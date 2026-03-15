@@ -112,41 +112,41 @@ function displayItem(item: any): void {
   }
 
   // Display photos
-  displayPhotos(item.photos || []);
+  displayPhotos();
   
   // Load categories for edit modal
   loadCategories();
 }
 
-/* Display photos in grid */
-function displayPhotos(photos: any[]): void {
-  const container = document.getElementById('photos-container')!;
-  const noPhotos = document.getElementById('no-photos')!;
+/* Display item photos */
+function displayPhotos(): void {
+  const container = document.getElementById('photos-container');
+  if (!container || !currentItem) return;
 
-  if (photos.length === 0) {
-    noPhotos.style.display = 'block';
+  if (!currentItem.photoUrls || currentItem.photoUrls.length === 0) {
+    container.innerHTML = '<p class="text-muted">No photos</p>';
     return;
   }
 
-  container.innerHTML = photos.map(photo => `
-  <div class="col-md-4 col-sm-6">
-    <div class="card h-100">
-      <img src="http://localhost:3000${photo.filepath}" class="card-img-top" alt="Item photo" style="height: 200px; object-fit: cover; cursor: pointer;">
-      <div class="card-body d-flex justify-content-center">
-        <button class="btn btn-sm btn-outline-danger delete-photo-btn" data-photo-index="${photo.id}">
-          Remove
-        </button>
+  container.innerHTML = currentItem.photoUrls.map((photoUrl: string, index: number) => `
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <img src="${photoUrl}" class="card-img-top" alt="Item photo ${index + 1}">
+        <div class="card-body text-center">
+          <button class="btn btn-outline-danger btn-sm remove-photo-btn" data-filename="${currentItem.photos[index]}">
+            Remove
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-`).join('');
+  `).join('');
 
-  // Add delete photo listeners
-  document.querySelectorAll('.delete-photo-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const photoIndex = (e.target as HTMLElement).getAttribute('data-photo-index');
-      if (photoIndex && itemId) {
-        deletePhoto(itemId, photoIndex);
+  //Event listeners to remove buttons
+  document.querySelectorAll('.remove-photo-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const filename = (btn as HTMLElement).getAttribute('data-filename');
+      if (filename) {
+        await deletePhoto(filename);
       }
     });
   });
@@ -173,19 +173,20 @@ async function deleteItem(id: string): Promise<void> {
 }
 
 /* Delete a single photo */
-async function deletePhoto(itemId: string, photoIndex: string): Promise<void> {
+async function deletePhoto(filename: string): Promise<void> {
+  if (!itemId) return;
+  
   if (!confirm('Are you sure you want to remove this photo?')) return;
 
   try {
-    const response = await fetch(`${API_URL}/items/${itemId}/photos/${photoIndex}`, {
+    const response = await fetch(`${API_URL}/items/${itemId}/photos/${filename}`, {
       method: 'DELETE',
       credentials: 'include'
     });
 
     if (response.ok) {
-      setTimeout(() => {
-        loadItemDetails(itemId);
-      }, 300);
+      await loadItemDetails(itemId);
+      displayPhotos();
     } else {
       alert('Failed to delete photo');
     }
