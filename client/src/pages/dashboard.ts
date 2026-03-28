@@ -3,7 +3,8 @@ import { Modal } from 'bootstrap';
 import '../styles/main.css';
 import { requireAuth, handleLogout } from '../ts/auth';
 
-const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://property-archive-backend.onrender.com/api';
 
 // Require authentication
 requireAuth();

@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://property-archive-backend.onrender.com/api';
+
 
 /* Check if user is authenticated */
 export async function checkAuth(): Promise<boolean> {

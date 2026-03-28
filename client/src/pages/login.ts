@@ -1,7 +1,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/main.css';
 
-const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://property-archive-backend.onrender.com/api';
 
 const form = document.getElementById('login-form') as HTMLFormElement;
 const errorDiv = document.getElementById('error-message') as HTMLDivElement;
