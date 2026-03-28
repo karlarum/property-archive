@@ -157,7 +157,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
-    const { name, description, categoryId, purchaseDate, purchasePrice, location } = req.body;
+    const { name, description, categoryId, purchaseDate, purchasePrice, location, quantity } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Item name is required' });
@@ -171,6 +171,7 @@ router.post('/', async (req: Request, res: Response) => {
       purchase_date: purchaseDate || undefined,
       purchase_price: purchasePrice || undefined,
       location: location || undefined,
+      quantity: quantity ? parseInt(quantity) : 1,
       photos: []
     });
 
@@ -189,7 +190,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.session.userId!;
     const itemId = req.params.id;
-    const { name, description, categoryId, purchaseDate, purchasePrice, location } = req.body;
+    const { name, description, categoryId, purchaseDate, purchasePrice, location, quantity } = req.body;
 
     const item = await Item.findOne({ _id: itemId, user_id: userId });
     if (!item) {
@@ -202,6 +203,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     item.purchase_date = purchaseDate || undefined;
     item.purchase_price = purchasePrice || undefined;
     item.location = location || undefined;
+    item.quantity = quantity ? parseInt(quantity) : 1;
     item.updated_at = new Date();
 
     await item.save();

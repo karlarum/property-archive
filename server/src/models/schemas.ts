@@ -51,6 +51,7 @@ export interface IItem extends Document {
   purchase_date?: Date;
   purchase_price?: number;
   location?: string;
+  quantity?: number;
   photos: string[];
   created_at: Date;
   updated_at: Date;

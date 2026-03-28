@@ -14,6 +14,7 @@ const itemId = urlParams.get('id');
 let editItemModal: Modal;
 let deleteConfirmModal: Modal;
 let currentItem: any = null;
+let pendingAction: (() => Promise<void>) | null = null;
 
 // Setup on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -38,16 +39,19 @@ function setupEventListeners(): void {
     handleLogout();
   });
 
-  // Delete button - show modal
+  // Delete button
   document.getElementById('delete-item-btn')?.addEventListener('click', () => {
+    pendingAction = () => deleteItem(itemId!);
     deleteConfirmModal.show();
   });
 
   // Confirm delete button
-  document.getElementById('confirm-delete-btn')?.addEventListener('click', () => {
-    if (itemId) {
-      deleteItem(itemId);
+  document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
+    if (pendingAction) {
+      await pendingAction();
+      pendingAction = null;
     }
+    deleteConfirmModal.hide();
   });
 
   // Edit button
@@ -141,7 +145,7 @@ function displayPhotos(): void {
     </div>
   `).join('');
 
-  //Event listeners to remove buttons
+  // Event listeners to remove buttons
   document.querySelectorAll('.remove-photo-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const filename = (btn as HTMLElement).getAttribute('data-filename');
@@ -161,7 +165,6 @@ async function deleteItem(id: string): Promise<void> {
     });
 
     if (response.ok) {
-      deleteConfirmModal.hide();
       window.location.href = '/dashboard.html';
     } else {
       alert('Failed to delete item');
@@ -175,25 +178,27 @@ async function deleteItem(id: string): Promise<void> {
 /* Delete a single photo */
 async function deletePhoto(filename: string): Promise<void> {
   if (!itemId) return;
-  
-  if (!confirm('Are you sure you want to remove this photo?')) return;
 
-  try {
-    const response = await fetch(`${API_URL}/items/${itemId}/photos/${filename}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
+  pendingAction = async () => {
+    try {
+      const response = await fetch(`${API_URL}/items/${itemId}/photos/${filename}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
 
-    if (response.ok) {
-      await loadItemDetails(itemId);
-      displayPhotos();
-    } else {
+      if (response.ok) {
+        await loadItemDetails(itemId!);
+        displayPhotos();
+      } else {
+        alert('Failed to delete photo');
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error);
       alert('Failed to delete photo');
     }
-  } catch (error) {
-    console.error('Error deleting photo:', error);
-    alert('Failed to delete photo');
-  }
+  };
+
+  deleteConfirmModal.show();
 }
 
 /* Load categories for the edit form */
@@ -214,6 +219,11 @@ async function loadCategories(): Promise<void> {
         option.textContent = cat.name;
         select.appendChild(option);
       });
+
+      // Set the current item's category now that options exist
+      if (currentItem?.category_id) {
+        select.value = currentItem.category_id;
+      }
     }
   } catch (error) {
     console.error('Error loading categories:', error);
@@ -226,7 +236,6 @@ function openEditModal(): void {
 
   (document.getElementById('edit-item-name') as HTMLInputElement).value = currentItem.name;
   (document.getElementById('edit-item-description') as HTMLTextAreaElement).value = currentItem.description || '';
-  (document.getElementById('edit-item-category') as HTMLSelectElement).value = currentItem.category_id || '';
   (document.getElementById('edit-item-location') as HTMLInputElement).value = currentItem.location || '';
   (document.getElementById('edit-item-purchase-date') as HTMLInputElement).value = currentItem.purchase_date 
     ? new Date(currentItem.purchase_date).toISOString().split('T')[0] 
@@ -234,6 +243,7 @@ function openEditModal(): void {
   (document.getElementById('edit-item-purchase-price') as HTMLInputElement).value = currentItem.purchase_price || '';
   (document.getElementById('edit-item-quantity') as HTMLInputElement).value = currentItem.quantity || '1';
 
+  loadCategories();
   editItemModal.show();
 }
 

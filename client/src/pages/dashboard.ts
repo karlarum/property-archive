@@ -11,6 +11,8 @@ requireAuth();
 // Global state
 let items: any[] = [];
 let categories: any[] = [];
+let deleteConfirmModal: Modal;
+let pendingDeleteId: string | null = null;
 
 // Modals
 let addItemModal: Modal;
@@ -19,6 +21,7 @@ let categoriesModal: Modal;
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
   addItemModal = new Modal(document.getElementById('addItemModal')!);
+  deleteConfirmModal = new Modal(document.getElementById('deleteConfirmModal')!);
   categoriesModal = new Modal(document.getElementById('categoriesModal')!);
   
   loadCategories();
@@ -44,6 +47,14 @@ function setupEventListeners(): void {
       }
     }
   });
+
+  document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
+  if (pendingDeleteId) {
+    await performDelete(pendingDeleteId);
+    pendingDeleteId = null;
+    deleteConfirmModal.hide();
+  }
+});
 
   // View item buttons
   document.addEventListener('click', (e) => {
@@ -97,6 +108,51 @@ async function loadItems(): Promise<void> {
   }
 }
 
+/* Display categories from API */
+function displayCategories(): void {
+  const container = document.getElementById('categories-list');
+  if (!container) return;
+
+  if (categories.length === 0) {
+    container.innerHTML = '<p class="text-muted">No categories yet.</p>';
+    return;
+  }
+
+  container.innerHTML = categories.map(cat => `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span>${escapeHtml(cat.name)} <small class="text-muted">(${cat.item_count} items)</small></span>
+      <button class="btn btn-outline-danger btn-sm delete-category-btn" data-category-id="${cat.id}">Delete</button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.delete-category-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const categoryId = (btn as HTMLElement).getAttribute('data-category-id');
+      if (categoryId) await deleteCategoryHandler(categoryId);
+    });
+  });
+}
+/* Delete categories from API */
+async function deleteCategoryHandler(categoryId: string): Promise<void> {
+  try {
+    const response = await fetch(`${API_URL}/categories/${categoryId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      await loadCategories();
+      await loadItems();
+    } else {
+      const data = await response.json();
+      alert(data.error || 'Failed to delete category');
+    }
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    alert('Failed to delete category');
+  }
+}
+
 /* Load categories from API */
 async function loadCategories(): Promise<void> {
   try {
@@ -107,6 +163,7 @@ async function loadCategories(): Promise<void> {
     if (response.ok) {
       categories = await response.json();
       populateCategorySelects();
+      displayCategories();
     }
   } catch (error) {
     console.error('Error loading categories:', error);
@@ -153,7 +210,7 @@ function displayItems(itemsToDisplay: any[]): void {
 function addCardEventListeners(): void {
   // Clickable cards (view item)
   document.querySelectorAll('#items-container .card').forEach(card => {
-    card.addEventListener('click', (e) => {
+    card.addEventListener('click', () => {
       const itemId = (card as HTMLElement).getAttribute('data-item-id');
       if (itemId) {
         window.location.href = `/item-detail.html?id=${itemId}`;
@@ -175,10 +232,10 @@ function addCardEventListeners(): void {
 
 /* Update stats cards */
 function updateStats(): void {
-  const totalItems = items.length;
+  const totalItems = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalCategories = categories.length;
   const totalPhotos = items.reduce((sum, item) => sum + (item.photo_count || 0), 0);
-  const totalValue = items.reduce((sum, item) => sum + (parseFloat(item.purchase_price) || 0), 0);
+  const totalValue = items.reduce((sum, item) => sum + ((parseFloat(item.purchase_price) || 0) * (item.quantity || 1)), 0);
 
   document.getElementById('total-items')!.textContent = totalItems.toString();
   document.getElementById('total-categories')!.textContent = totalCategories.toString();
@@ -268,8 +325,11 @@ async function saveItem(): Promise<void> {
 
 /* Delete item handler */
 async function deleteItemHandler(itemId: string): Promise<void> {
-  if (!confirm('Are you sure you want to delete this item?')) return;
+  pendingDeleteId = itemId;
+  deleteConfirmModal.show();
+}
 
+async function performDelete(itemId: string): Promise<void> {
   try {
     const response = await fetch(`${API_URL}/items/${itemId}`, {
       method: 'DELETE',
