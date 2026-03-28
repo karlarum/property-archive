@@ -137,7 +137,7 @@ router.get('/google/callback',
   (req: Request, res: Response) => {
     // Successful authentication
     req.session.userId = (req.user as any)._id.toString();
-    res.redirect('http://localhost:5173/dashboard.html');
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard.html`);
   }
 );
 
