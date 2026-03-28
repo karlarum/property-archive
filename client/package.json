@@ -8,6 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.8"
+  },
   "devDependencies": {
     "@types/bootstrap": "^5.2.10",
     "typescript": "~5.9.3",
