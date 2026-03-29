@@ -15,6 +15,7 @@ import categoryRoutes from './routes/categories';
 import exportRoutes from './routes/export';
 
 const app: Application = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Middleware
